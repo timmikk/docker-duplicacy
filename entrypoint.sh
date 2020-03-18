@@ -71,7 +71,7 @@ assert_machine_id() {
 
 stage_duplicacy_directory() {
 
-  cd /etc/duplicacy
+  cd /config
 
   assert_file '{}' 'duplicacy.json'
   assert_file '{}' 'licenses.json'

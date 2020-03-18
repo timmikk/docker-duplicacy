@@ -39,43 +39,42 @@ RUN ARCHITECTURE=linux_x64                                                      
     _BIN_DUPLICACY=/usr/local/bin/duplicacy                                                   && \
     _BIN_DUPLICACY_WEB=/usr/local/bin/duplicacy_web                                           && \
     _DIR_WEB=~/.duplicacy-web                                                                 && \
-    _DIR_CONF=/etc/duplicacy                                                                  && \
+    _DIR_CONF=/config                                                                         && \
     _DIR_CACHE=/var/cache/duplicacy                                                           && \
-                                                                                                 \
+                                                                                                 
     # add a few packages:
     #  * ca-certificates - so Duplicacy doesn't complain about HTTPS
     #  * tzdata          - so users can set timezone via TZ environment variable
     apk update                                                                                && \
     apk add --no-cache ca-certificates tzdata                                                 && \
-                                                                                                 \
+                                                                                                 
     # download, check, and install duplicacy
     wget -O $_BIN_DUPLICACY "$_URL_DUPLICACY"                                                 && \
     echo "${SHA256_DUPLICACY}  ${_BIN_DUPLICACY}" | sha256sum -s -c -                         && \
     chmod +x $_BIN_DUPLICACY                                                                  && \
-                                                                                                 \
+                                                                                                 
     # downlooad, check, and install the web UI
     wget -O $_BIN_DUPLICACY_WEB "$_URL_DUPLICACY_WEB"                                         && \
     echo "${SHA256_DUPLICACY_WEB}  ${_BIN_DUPLICACY_WEB}" | sha256sum -s -c -                 && \
     chmod +x $_BIN_DUPLICACY_WEB                                                              && \
-                                                                                                 \
+                                                                                                 
+    ln -s ${_DIR_CONF}  ${_DIR_WEB}                                                           && \
+
     # create some dirs
     mkdir -p                                                                                     \
       ${_DIR_CACHE}/repositories                                                                 \
       ${_DIR_CACHE}/stats                                                                        \
-      ${_DIR_WEB}/bin                                                                            \
+      ${_DIR_CONF}/bin                                                                           \
       /var/lib/dbus                                                                           && \
-                                                                                                 \
+                                                                                                 
     # duplicacy_web expects to find the CLI binary in a certain location
     # https://forum.duplicacy.com/t/run-web-ui-in-a-docker-container/1505/2
-    ln -s $_BIN_DUPLICACY ${_DIR_WEB}/bin/duplicacy_${ARCHITECTURE}_${VERSION_DUPLICACY}      && \
-                                                                                                 \
+    cp $_BIN_DUPLICACY ${_DIR_WEB}/bin/duplicacy_${ARCHITECTURE}_${VERSION_DUPLICACY}      && \
+                                                                                                 
     # redirect the log to stdout
     ln -s /dev/stdout /var/log/duplicacy_web.log                                              && \
-                                                                                                 \
+                                                                                                 
     # stage the rest of the web directory
-    ln -s ${_DIR_CONF}/settings.json  ${_DIR_WEB}/settings.json                               && \
-    ln -s ${_DIR_CONF}/duplicacy.json ${_DIR_WEB}/duplicacy.json                              && \
-    ln -s ${_DIR_CONF}/licenses.json  ${_DIR_WEB}/licenses.json                               && \
     ln -s ${_DIR_CONF}/filters        ${_DIR_WEB}/filters                                     && \
     ln -s ${_DIR_CACHE}/stats         ${_DIR_WEB}/stats
 
@@ -84,4 +83,4 @@ CMD [ "/usr/local/bin/entrypoint.sh" ]
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 
-VOLUME ["/var/cache/duplicacy", "/etc/duplicacy"]
+VOLUME ["/var/cache/duplicacy", "/config"]
